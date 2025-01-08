@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "dclgen-parser"
+version = "0.1.0"
+description = ""
+authors = ["Ciro Lucio Tecce <c.tecce@reply.com>"]
+readme = "README.md"
+packages = [
+    { include = "dclgen_parser" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
