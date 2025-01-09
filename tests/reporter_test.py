@@ -53,7 +53,25 @@ class TestReportGenerator(unittest.TestCase):
             # Clean up temporary file
             os.unlink(temp_filename)
 
-    def test_generate_report_adds_csv_extension(self):
+    def test_generate_report_includes_normalized_file_name(self):
+        with NamedTemporaryFile(delete=False, suffix='.csv') as temp_file:
+            temp_filename = temp_file.name
+
+        try:
+            # Generate report
+            self.report_generator.generate_report(self.sample_stats, temp_filename)
+
+            # Verify file contents
+            with open(temp_filename, 'r', newline='') as csvfile:
+                reader = csv.reader(csvfile)
+                header = next(reader)
+
+                # Check for 'normalized file name' in header
+                self.assertIn('normalized file name', header)
+
+        finally:
+            # Clean up temporary file
+            os.unlink(temp_filename)
         with NamedTemporaryFile(delete=False) as temp_file:
             temp_filename = temp_file.name
             
