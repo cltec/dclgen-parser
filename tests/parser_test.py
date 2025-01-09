@@ -179,3 +179,45 @@ class TestDCLGENParser(unittest.TestCase):
         table = self.parser.parse(malformed_dclgen)
         bad_col = next(attr for attr in table.attributes if attr.name == "BAD_COL")
         self.assertEqual(bad_col.type, "UNKNOWN_TYPE")  # SimpleAttributeParser handles unknown types
+
+    def test_multiline_timestamp_declaration_with_comments(self):
+        """Test parsing of TIMESTAMP WITH TIME ZONE that spans multiple lines"""
+        multiline_dclgen = """
+           EXEC SQL DECLARE TEST_TABLE TABLE                                 
+           ( REGULAR_COL                    INTEGER NOT NULL,
+CR0146       MULTILINE_TS                   TIMESTAMP
+CR0146                                         WITH TIME ZONE NOT NULL,
+CR0146       D_BSN_DT_INI                   DATE NOT NULL              
+           ) END-EXEC.
+        """
+        table = self.parser.parse(multiline_dclgen)
+        
+        # Verify we got both columns
+        self.assertEqual(len(table.attributes), 3)
+        
+        # Check the timestamp column
+        ts_attr = next(attr for attr in table.attributes if attr.name == "MULTILINE_TS")
+        self.assertEqual(ts_attr.type, "TIMESTAMP")
+        self.assertFalse(ts_attr.nullable)
+
+    def test_cobol_comments_in_declaration(self):
+        """Test handling of COBOL comment lines (*) in attribute declarations"""
+        dclgen_with_comments = """
+           EXEC SQL DECLARE TEST_TABLE TABLE                                 
+           ( FIRST_COL                     CHAR(16) NOT NULL,
+CR0146*      OLD_COLUMN                     CHAR(16) NOT NULL,
+CR0146       ACTUAL_COLUMN                  CHAR(35) NOT NULL,
+             LAST_COL                      INTEGER NOT NULL
+           ) END-EXEC.
+        """
+        table = self.parser.parse(dclgen_with_comments)
+        
+        # Should only have 3 columns (commented one should be ignored)
+        self.assertEqual(len(table.attributes), 3)
+        
+        # Verify the correct columns are present
+        attr_names = {attr.name for attr in table.attributes}
+        self.assertSetEqual(attr_names, {"FIRST_COL", "ACTUAL_COLUMN", "LAST_COL"})
+        
+        # Verify no attributes with name "*" exist
+        self.assertFalse(any(attr.name == "*" for attr in table.attributes))

@@ -213,8 +213,8 @@ class DCLGENParser:
     def _extract_attributes(self, content: str) -> List[Attribute]:
         """Extract attributes from DCLGEN content"""
         # Find the SQL declaration block
-        sql_block_match = re.search(r'DECLARE.*?TABLE\s*\((.*?)\)\s*END-EXEC', 
-                                  content, re.DOTALL)
+        sql_block_match = re.search(r'DECLARE.*?TABLE\s*\((.*?)\)\s*END-EXEC\.', 
+                                  content, re.DOTALL | re.IGNORECASE)
         if not sql_block_match:
             raise ValueError("Could not find SQL declaration block")
 
@@ -258,8 +258,35 @@ class DCLGENParser:
 
         return attributes
 
+    def _clean_cobol_format(self, content: str) -> str:
+        """Clean COBOL fixed-format content by removing sequence numbers, line identifiers and comments"""
+        cleaned_lines = []
+        for line in content.splitlines():
+            # Skip empty lines
+            if not line.strip():
+                cleaned_lines.append(line)
+                continue
+            
+            # If line is shorter than 7 characters, preserve it as is
+            if len(line) < 7:
+                cleaned_lines.append(line)
+                continue
+            
+            # Check if it's a comment line (asterisk in column 7)
+            if len(line) > 6 and line[6] == '*':
+                continue
+                
+            # Remove sequence numbers (1-6) and keep only the content starting from column 7
+            # For longer lines, also remove the identification area (73-80)
+            content_line = line[6:72] if len(line) > 72 else line[6:]
+            cleaned_lines.append(content_line)
+            
+        return '\n'.join(cleaned_lines)
+
     def parse(self, content: str) -> Table:
         """Parse DCLGEN content and return Table object"""
-        table_name, schema_name = self._extract_schema_and_table_names(content)
-        attributes = self._extract_attributes(content)
+        # Clean up COBOL fixed-format content first
+        cleaned_content = self._clean_cobol_format(content)
+        table_name, schema_name = self._extract_schema_and_table_names(cleaned_content)
+        attributes = self._extract_attributes(cleaned_content)
         return Table(table_name=table_name, schema_name=schema_name, attributes=attributes)
