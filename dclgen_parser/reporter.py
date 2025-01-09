@@ -16,15 +16,17 @@ class ReportGenerator:
             writer = csv.writer(csvfile)
             
             # Write header
-            writer.writerow([ 'Table Name', 'Number of Attributes', 'File Path', 'Schema',])
+            writer.writerow([ 'Table Name', 'Number of Attributes', 'File Path', 'Schema', 'Normalized File Name'])
             
             # Write data rows
             for table_name in sorted(tables_stats.keys()):
                 stats_list = tables_stats[table_name]
                 for stats in stats_list:
+                    normalized_filename = stats.filename.rsplit('.', 1)[0].upper()
                     writer.writerow([
                         table_name,
                         stats.attribute_count,
                         stats.filename,
                         stats.schema,
+                        normalized_filename
                     ])

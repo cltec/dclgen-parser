@@ -72,7 +72,28 @@ class TestReportGenerator(unittest.TestCase):
         finally:
             # Clean up temporary file
             os.unlink(temp_filename)
-        with NamedTemporaryFile(delete=False) as temp_file:
+    def test_generate_report_normalizes_file_name(self):
+        with NamedTemporaryFile(delete=False, suffix='.csv') as temp_file:
+            temp_filename = temp_file.name
+
+        try:
+            # Generate report
+            self.report_generator.generate_report(self.sample_stats, temp_filename)
+
+            # Verify file contents
+            with open(temp_filename, 'r', newline='') as csvfile:
+                reader = csv.reader(csvfile)
+                next(reader)  # Skip header
+                rows = list(reader)
+
+                # Check normalized file names
+                self.assertEqual(rows[0][4], 'FILE1')
+                self.assertEqual(rows[1][4], 'FILE2')
+                self.assertEqual(rows[2][4], 'FILE3')
+
+        finally:
+            # Clean up temporary file
+            os.unlink(temp_filename)
             temp_filename = temp_file.name
             
         try:
