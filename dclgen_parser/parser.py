@@ -9,6 +9,8 @@ class Attribute:
     name: str
     type: str
     length: Optional[int] = None
+    precision: Optional[int] = None  # For DECIMAL type
+    scale: Optional[int] = None      # For DECIMAL type
     nullable: bool = True
 
 @dataclass
@@ -29,7 +31,7 @@ class AttributeParser(ABC):
         pass
 
 class CharAttributeParser(AttributeParser):
-    """Parser for CHAR type attributes"""
+    """Parser for CHAR and VARCHAR type attributes"""
     def can_parse(self, declaration: str) -> bool:
         return "CHAR(" in declaration or "VARCHAR(" in declaration
 
@@ -50,15 +52,122 @@ class CharAttributeParser(AttributeParser):
         
         return Attribute(name=name, type=dtype, length=length, nullable=nullable)
 
+class DecimalAttributeParser(AttributeParser):
+    """Parser for DECIMAL type attributes"""
+    def can_parse(self, declaration: str) -> bool:
+        type_part = declaration.upper().split()[1] if len(declaration.split()) > 1 else ""
+        return type_part.startswith("DEC") or type_part.startswith("DECIMAL")
+
+    def parse(self, declaration: str) -> Attribute:
+        parts = declaration.strip().split()
+        name = parts[0].strip()
+        type_part = " ".join(parts[1:]).upper()
+
+        # Extract precision and scale
+        # Handle both DECIMAL(p,s) and DEC(p,s) formats
+        decimal_match = re.search(r'(?:DECIMAL|DEC)\s*\((\d+)(?:\s*,\s*(\d+))?\)', type_part, re.IGNORECASE)
+        if not decimal_match:
+            raise ValueError(f"Invalid DECIMAL format in declaration: {declaration}")
+            
+        precision = int(decimal_match.group(1))
+        scale = int(decimal_match.group(2)) if decimal_match.group(2) else 0
+
+        nullable = "NOT NULL" not in type_part
+        
+        return Attribute(
+            name=name,
+            type="DECIMAL",
+            precision=precision,
+            scale=scale,
+            nullable=nullable
+        )
+
+class FloatAttributeParser(AttributeParser):
+    """Parser for FLOAT type attributes"""
+    def can_parse(self, declaration: str) -> bool:
+        return any(type_name in declaration.upper() for type_name in ["FLOAT", "REAL", "DOUBLE"])
+
+    def parse(self, declaration: str) -> Attribute:
+        parts = declaration.strip().split()
+        name = parts[0].strip()
+        type_part = " ".join(parts[1:]).upper()
+        
+        # Determine specific float type
+        if "REAL" in type_part:
+            dtype = "REAL"
+        elif "DOUBLE" in type_part:
+            dtype = "DOUBLE"
+        else:
+            dtype = "FLOAT"
+            
+        # Check for precision in FLOAT
+        precision = None
+        if dtype == "FLOAT":
+            precision_match = re.search(r'FLOAT\((\d+)\)', type_part)
+            if precision_match:
+                precision = int(precision_match.group(1))
+        
+        nullable = "NOT NULL" not in type_part
+        
+        return Attribute(name=name, type=dtype, precision=precision, nullable=nullable)
+
+class DateTimeAttributeParser(AttributeParser):
+    """Parser for DATE, TIME, and TIMESTAMP type attributes"""
+    def can_parse(self, declaration: str) -> bool:
+        return any(type_name in declaration.upper() for type_name in ["DATE", "TIME", "TIMESTAMP"])
+
+    def parse(self, declaration: str) -> Attribute:
+        parts = declaration.strip().split()
+        name = parts[0].strip()
+        type_part = " ".join(parts[1:]).upper()
+        
+        # Determine specific type
+        if "TIMESTAMP" in type_part:
+            dtype = "TIMESTAMP"
+        elif "TIME" in type_part:
+            dtype = "TIME"
+        else:
+            dtype = "DATE"
+            
+        nullable = "NOT NULL" not in type_part
+        
+        return Attribute(name=name, type=dtype, nullable=nullable)
+
+class BlobAttributeParser(AttributeParser):
+    """Parser for BLOB, CLOB, and DBCLOB type attributes"""
+    def can_parse(self, declaration: str) -> bool:
+        return any(type_name in declaration.upper() for type_name in ["BLOB", "CLOB", "DBCLOB"])
+
+    def parse(self, declaration: str) -> Attribute:
+        parts = declaration.strip().split()
+        name = parts[0].strip()
+        type_part = " ".join(parts[1:]).upper()
+        
+        # Determine specific type
+        if "DBCLOB" in type_part:
+            dtype = "DBCLOB"
+        elif "CLOB" in type_part:
+            dtype = "CLOB"
+        else:
+            dtype = "BLOB"
+            
+        # Extract length if specified
+        length_match = re.search(rf'{dtype}\((\d+)(?:K|M|G)?\)', type_part)
+        length = int(length_match.group(1)) if length_match else None
+        
+        nullable = "NOT NULL" not in type_part
+        
+        return Attribute(name=name, type=dtype, length=length, nullable=nullable)
+
 class SimpleAttributeParser(AttributeParser):
-    """Parser for simple types (INTEGER, TIMESTAMP, etc.)"""
+    """Parser for simple types (INTEGER, SMALLINT, BIGINT)"""
     def can_parse(self, declaration: str) -> bool:
         return True  # Fallback parser for all other types
 
     def parse(self, declaration: str) -> Attribute:
         parts = declaration.strip().split()
         name = parts[0].strip()
-        dtype = parts[1].strip()
+        dtype = parts[1].strip().upper()
         nullable = "NOT NULL" not in declaration
         
         return Attribute(name=name, type=dtype, nullable=nullable)
@@ -68,6 +177,10 @@ class DCLGENParser:
     def __init__(self):
         self.parsers: List[AttributeParser] = [
             CharAttributeParser(),
+            DecimalAttributeParser(),
+            FloatAttributeParser(),
+            DateTimeAttributeParser(),
+            BlobAttributeParser(),
             SimpleAttributeParser()  # Fallback parser
         ]
 
@@ -106,11 +219,36 @@ class DCLGENParser:
             raise ValueError("Could not find SQL declaration block")
 
         attributes = []
-        declarations = sql_block_match.group(1).strip().split(',')
+        # Get the full declaration block
+        sql_block = sql_block_match.group(1).strip()
         
+        # Split declarations while preserving commas inside parentheses
+        declarations = []
+        current_decl = []
+        paren_count = 0
+        
+        # Split into lines first to handle potential formatting
+        for char in sql_block:
+            if char == '(':
+                paren_count += 1
+            elif char == ')':
+                paren_count -= 1
+            
+            if char == ',' and paren_count == 0:
+                # End of declaration
+                if current_decl:
+                    declarations.append(''.join(current_decl).strip())
+                current_decl = []
+            else:
+                current_decl.append(char)
+        
+        # Add the last declaration if exists
+        if current_decl:
+            declarations.append(''.join(current_decl).strip())
+        
+        # Process each declaration
         for decl in declarations:
-            decl = decl.strip()
-            if not decl:
+            if not decl.strip():
                 continue
                 
             # Find appropriate parser

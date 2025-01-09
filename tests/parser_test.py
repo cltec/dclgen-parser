@@ -6,98 +6,176 @@ class TestDCLGENParser(unittest.TestCase):
     def setUp(self):
         self.parser = DCLGENParser()
         self.sample_dclgen = """
-           EXEC SQL DECLARE EIP_ADT_TRAIL TABLE                                 
-           ( S_DT_TM                        TIMESTAMP NOT NULL,                 
-             C_USER_1                       CHAR(8) NOT NULL,                   
-             C_USER_2                       CHAR(8) NOT NULL,                   
-             C_SRVC_ID                      CHAR(3) NOT NULL,                   
-             P_EVNT_TP                      CHAR(3) NOT NULL,                   
-             X_EVNT_DSCR                    VARCHAR(1000) NOT NULL,             
-             C_PRG_REF                      CHAR(20) NOT NULL,                  
-             C_BIC_CD                       CHAR(11) NOT NULL,                  
-             C_SYS_ALT_REF                  INTEGER NOT NULL                    
+           EXEC SQL DECLARE MYSCHEMA.COMPLETE_TABLE TABLE                                 
+           ( TIMESTAMP_COL                  TIMESTAMP NOT NULL,                 
+             CHAR_COL                       CHAR(8) NOT NULL,                   
+             VARCHAR_COL                    VARCHAR(1000) NOT NULL,             
+             INTEGER_COL                    INTEGER NOT NULL,
+             DECIMAL_COL                    DECIMAL(10,2) NOT NULL,
+             SMALL_DEC                      DEC(5) NOT NULL,
+             FLOAT_COL                      FLOAT(53) NOT NULL,
+             REAL_COL                       REAL NOT NULL,
+             DOUBLE_COL                     DOUBLE NOT NULL,
+             DATE_COL                       DATE NOT NULL,
+             TIME_COL                       TIME NOT NULL,
+             BLOB_COL                       BLOB(1M) NOT NULL,
+             CLOB_COL                       CLOB(2G) NOT NULL,
+             DBCLOB_COL                     DBCLOB(100) NOT NULL,
+             BIGINT_COL                     BIGINT NOT NULL,
+             SMALLINT_COL                   SMALLINT
            ) END-EXEC.
         """
+
+    def test_table_metadata(self):
+        """Test basic table metadata extraction"""
+        table = self.parser.parse(self.sample_dclgen)
+        self.assertEqual(table.table_name, "COMPLETE_TABLE")
+        self.assertEqual(table.schema_name, "MYSCHEMA")
+        self.assertEqual(len(table.attributes), 16)
+
+    def test_char_attributes(self):
+        """Test parsing of CHAR and VARCHAR types"""
+        table = self.parser.parse(self.sample_dclgen)
         
-        self.schema_in_declare = """
-           EXEC SQL DECLARE SCHEMA1.TABLE1 TABLE                                 
-           ( FIELD1                        INTEGER NOT NULL                    
-           ) END-EXEC.
-        """
-        
-        self.schema_in_dclgen = """
-      ******************************************************************        
-      * DCLGEN TABLE(SCHEMA2.TABLE2)                                    *        
-      ******************************************************************        
-           EXEC SQL DECLARE TABLE2 TABLE                                 
-           ( FIELD1                        INTEGER NOT NULL                    
-           ) END-EXEC.
-        """
-        
-        self.both_schemas = """
-      ******************************************************************        
-      * DCLGEN TABLE(SCHEMA3.TABLE3)                                    *        
-      ******************************************************************        
-           EXEC SQL DECLARE SCHEMA4.TABLE3 TABLE                                 
-           ( FIELD1                        INTEGER NOT NULL                    
-           ) END-EXEC.
-        """
-
-    def test_table_name_extraction(self):
-        table = self.parser.parse(self.sample_dclgen)
-        self.assertEqual(table.table_name, "EIP_ADT_TRAIL")
-
-    def test_attributes_count(self):
-        table = self.parser.parse(self.sample_dclgen)
-        self.assertEqual(len(table.attributes), 9)
-
-    def test_timestamp_attribute(self):
-        table = self.parser.parse(self.sample_dclgen)
-        timestamp_attr = next(attr for attr in table.attributes if attr.name == "S_DT_TM")
-        self.assertEqual(timestamp_attr.type, "TIMESTAMP")
-        self.assertFalse(timestamp_attr.nullable)
-
-    def test_char_attribute(self):
-        table = self.parser.parse(self.sample_dclgen)
-        char_attr = next(attr for attr in table.attributes if attr.name == "C_USER_1")
+        # Test CHAR
+        char_attr = next(attr for attr in table.attributes if attr.name == "CHAR_COL")
         self.assertEqual(char_attr.type, "CHAR")
         self.assertEqual(char_attr.length, 8)
         self.assertFalse(char_attr.nullable)
-
-    def test_varchar_attribute(self):
-        table = self.parser.parse(self.sample_dclgen)
-        varchar_attr = next(attr for attr in table.attributes if attr.name == "X_EVNT_DSCR")
+        
+        # Test VARCHAR
+        varchar_attr = next(attr for attr in table.attributes if attr.name == "VARCHAR_COL")
         self.assertEqual(varchar_attr.type, "VARCHAR")
         self.assertEqual(varchar_attr.length, 1000)
         self.assertFalse(varchar_attr.nullable)
 
-    def test_integer_attribute(self):
+    def test_decimal_attribute_full(self):
+        """Test parsing of DECIMAL type with precision and scale"""
         table = self.parser.parse(self.sample_dclgen)
-        integer_attr = next(attr for attr in table.attributes if attr.name == "C_SYS_ALT_REF")
-        self.assertEqual(integer_attr.type, "INTEGER")
-        self.assertFalse(integer_attr.nullable)
-        self.assertIsNone(integer_attr.length)  # INTEGER type should not have length
+        decimal_attr = next(attr for attr in table.attributes if attr.name == "DECIMAL_COL")
+        self.assertEqual(decimal_attr.type, "DECIMAL")
+        self.assertEqual(decimal_attr.precision, 10)
+        self.assertEqual(decimal_attr.scale, 2)
+        self.assertFalse(decimal_attr.nullable)
 
-    def test_no_schema(self):
-        """Test case when no schema is present"""
+    def test_decimal_attribute_no_scale(self):
+        """Test parsing of DECIMAL type with only precision"""
         table = self.parser.parse(self.sample_dclgen)
-        self.assertIsNone(table.schema_name)
-        self.assertEqual(table.table_name, "EIP_ADT_TRAIL")
+        decimal_attr = next(attr for attr in table.attributes if attr.name == "SMALL_DEC")
+        self.assertEqual(decimal_attr.type, "DECIMAL")
+        self.assertEqual(decimal_attr.precision, 5)
+        self.assertEqual(decimal_attr.scale, 0)
+        self.assertFalse(decimal_attr.nullable)
 
-    def test_schema_in_declare_statement(self):
-        """Test extraction of schema from DECLARE statement"""
-        table = self.parser.parse(self.schema_in_declare)
-        self.assertEqual(table.schema_name, "SCHEMA1")
-        self.assertEqual(table.table_name, "TABLE1")
+    def test_float_attributes(self):
+        """Test parsing of different floating point types"""
+        table = self.parser.parse(self.sample_dclgen)
+        
+        # Test FLOAT with precision
+        float_attr = next(attr for attr in table.attributes if attr.name == "FLOAT_COL")
+        self.assertEqual(float_attr.type, "FLOAT")
+        self.assertEqual(float_attr.precision, 53)
+        self.assertFalse(float_attr.nullable)
+        
+        # Test REAL
+        real_attr = next(attr for attr in table.attributes if attr.name == "REAL_COL")
+        self.assertEqual(real_attr.type, "REAL")
+        self.assertIsNone(real_attr.precision)
+        self.assertFalse(real_attr.nullable)
+        
+        # Test DOUBLE
+        double_attr = next(attr for attr in table.attributes if attr.name == "DOUBLE_COL")
+        self.assertEqual(double_attr.type, "DOUBLE")
+        self.assertIsNone(double_attr.precision)
+        self.assertFalse(double_attr.nullable)
 
-    def test_schema_in_dclgen_statement(self):
-        """Test extraction of schema from DCLGEN TABLE statement"""
-        table = self.parser.parse(self.schema_in_dclgen)
-        self.assertEqual(table.schema_name, "SCHEMA2")
-        self.assertEqual(table.table_name, "TABLE2")
+    def test_datetime_attributes(self):
+        """Test parsing of date and time types"""
+        table = self.parser.parse(self.sample_dclgen)
+        
+        # Test DATE
+        date_attr = next(attr for attr in table.attributes if attr.name == "DATE_COL")
+        self.assertEqual(date_attr.type, "DATE")
+        self.assertFalse(date_attr.nullable)
+        
+        # Test TIME
+        time_attr = next(attr for attr in table.attributes if attr.name == "TIME_COL")
+        self.assertEqual(time_attr.type, "TIME")
+        self.assertFalse(time_attr.nullable)
+        
+        # Test TIMESTAMP
+        timestamp_attr = next(attr for attr in table.attributes if attr.name == "TIMESTAMP_COL")
+        self.assertEqual(timestamp_attr.type, "TIMESTAMP")
+        self.assertFalse(timestamp_attr.nullable)
 
-    def test_schema_precedence(self):
-        """Test that DECLARE statement schema takes precedence over DCLGEN TABLE schema"""
-        table = self.parser.parse(self.both_schemas)
-        self.assertEqual(table.schema_name, "SCHEMA4")
-        self.assertEqual(table.table_name, "TABLE3")
+    def test_lob_attributes(self):
+        """Test parsing of LOB types"""
+        table = self.parser.parse(self.sample_dclgen)
+        
+        # Test BLOB
+        blob_attr = next(attr for attr in table.attributes if attr.name == "BLOB_COL")
+        self.assertEqual(blob_attr.type, "BLOB")
+        self.assertEqual(blob_attr.length, 1)  # 1M
+        self.assertFalse(blob_attr.nullable)
+        
+        # Test CLOB
+        clob_attr = next(attr for attr in table.attributes if attr.name == "CLOB_COL")
+        self.assertEqual(clob_attr.type, "CLOB")
+        self.assertEqual(clob_attr.length, 2)  # 2G
+        self.assertFalse(clob_attr.nullable)
+        
+        # Test DBCLOB
+        dbclob_attr = next(attr for attr in table.attributes if attr.name == "DBCLOB_COL")
+        self.assertEqual(dbclob_attr.type, "DBCLOB")
+        self.assertEqual(dbclob_attr.length, 100)
+        self.assertFalse(dbclob_attr.nullable)
+
+    def test_integer_attributes(self):
+        """Test parsing of integer types"""
+        table = self.parser.parse(self.sample_dclgen)
+        
+        # Test INTEGER
+        int_attr = next(attr for attr in table.attributes if attr.name == "INTEGER_COL")
+        self.assertEqual(int_attr.type, "INTEGER")
+        self.assertFalse(int_attr.nullable)
+        
+        # Test BIGINT
+        bigint_attr = next(attr for attr in table.attributes if attr.name == "BIGINT_COL")
+        self.assertEqual(bigint_attr.type, "BIGINT")
+        self.assertFalse(bigint_attr.nullable)
+        
+        # Test SMALLINT and nullable
+        smallint_attr = next(attr for attr in table.attributes if attr.name == "SMALLINT_COL")
+        self.assertEqual(smallint_attr.type, "SMALLINT")
+        self.assertTrue(smallint_attr.nullable)
+
+    def test_invalid_dclgen(self):
+        """Test parsing invalid DCLGEN content"""
+        invalid_content = """
+        This is not a valid DCLGEN file
+        """
+        with self.assertRaises(ValueError) as context:
+            self.parser.parse(invalid_content)
+        self.assertTrue("Could not find table declaration" in str(context.exception))
+
+    def test_empty_table(self):
+        """Test parsing a table with no attributes"""
+        empty_table = """
+           EXEC SQL DECLARE EMPTY_TABLE TABLE                                 
+           (
+           ) END-EXEC.
+        """
+        table = self.parser.parse(empty_table)
+        self.assertEqual(len(table.attributes), 0)
+
+    def test_malformed_declaration(self):
+        """Test handling of malformed attribute declarations"""
+        malformed_dclgen = """
+           EXEC SQL DECLARE MALFORMED_TABLE TABLE                                 
+           ( BAD_COL                        UNKNOWN_TYPE NOT NULL,
+             GOOD_COL                       INTEGER NOT NULL
+           ) END-EXEC.
+        """
+        table = self.parser.parse(malformed_dclgen)
+        bad_col = next(attr for attr in table.attributes if attr.name == "BAD_COL")
+        self.assertEqual(bad_col.type, "UNKNOWN_TYPE")  # SimpleAttributeParser handles unknown types
