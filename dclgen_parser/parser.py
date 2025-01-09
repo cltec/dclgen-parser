@@ -184,7 +184,7 @@ class DCLGENParser:
             SimpleAttributeParser()  # Fallback parser
         ]
 
-    def _extract_schema_and_table_names(self, content: str) -> tuple[str, Optional[str]]:
+    def _extract_schema_and_table_names(self, content: str) -> Tuple[str, Optional[str]]:
         """Extract schema and table name from DCLGEN content"""
         # First try to get schema from DCLGEN TABLE declaration
         dclgen_schema = None

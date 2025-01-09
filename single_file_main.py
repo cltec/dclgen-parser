@@ -45,7 +45,8 @@ def main():
     
     try:
         # Read the file
-        with open(args.file, 'r') as f:
+        file_path = os.path.abspath(args.file)
+        with open(file_path, 'r') as f:
             content = f.read()
             
         if args.verbose:

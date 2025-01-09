@@ -16,8 +16,9 @@ def main():
     args = parser.parse_args()
     
     # Verify directory exists
-    if not os.path.isdir(args.directory):
-        print(f"Error: Directory '{args.directory}' does not exist")
+    directory_path = os.path.abspath(args.directory)
+    if not os.path.isdir(directory_path):
+        print(f"Error: Directory '{directory_path}' does not exist")
         return 1
         
     # Create scanner and process files

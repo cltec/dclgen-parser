@@ -61,7 +61,7 @@ class DCLGENScanner:
                         tables_stats[table.table_name] = []
                     tables_stats[table.table_name].append(stats)
                     
-            except Exception as e:
+            except (IOError, UnicodeDecodeError) as e:
                 print(f"Error processing file {file_path}: {str(e)}")
                 continue
                     

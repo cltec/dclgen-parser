@@ -12,7 +12,7 @@ class ReportGenerator:
         if not output_file.lower().endswith('.csv'):
             output_file = output_file + '.csv'
             
-        with open(output_file, 'w', newline='') as csvfile:
+        with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
             
             # Write header
