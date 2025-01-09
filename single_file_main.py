@@ -1,5 +1,6 @@
 import sys
 import argparse
+import os
 from prettytable import PrettyTable
 from dclgen_parser.parser import DCLGENParser
 
