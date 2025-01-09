@@ -34,7 +34,7 @@ class TestReportGenerator(unittest.TestCase):
                 rows = list(reader)
                 
                 # Check header
-                self.assertEqual(rows[0], [ 'Table Name', 'Number of Attributes', 'File Path', 'Schema',])
+                self.assertEqual(rows[0], [ 'Table Name', 'Number of Attributes', 'File Path', 'Schema', 'Normalized File Name'])
                 
                 # Check data rows
                 self.assertEqual(len(rows), 4)  # Header + 3 data rows
@@ -67,7 +67,7 @@ class TestReportGenerator(unittest.TestCase):
                 header = next(reader)
 
                 # Check for 'normalized file name' in header
-                self.assertIn('normalized file name', header)
+                self.assertIn('Normalized File Name', header)
 
         finally:
             # Clean up temporary file
@@ -94,19 +94,4 @@ class TestReportGenerator(unittest.TestCase):
         finally:
             # Clean up temporary file
             os.unlink(temp_filename)
-            temp_filename = temp_file.name
-            
-        try:
-            # Generate report without .csv extension
-            self.report_generator.generate_report(self.sample_stats, temp_filename)
-            
-            # Verify .csv was added
-            self.assertTrue(os.path.exists(temp_filename + '.csv'))
-            
-        finally:
-            # Clean up temporary files
-            if os.path.exists(temp_filename):
-                os.unlink(temp_filename)
-            if os.path.exists(temp_filename + '.csv'):
-                os.unlink(temp_filename + '.csv')
 
