@@ -43,7 +43,7 @@ class TestExcelReporter(unittest.TestCase):
         ]
 
         for row_idx, expected_row in enumerate(expected_data, start=2):
-            actual_row = [sheet.cell(row=row_idx, column=col_idx).value for col_idx in range(1, 7)]
+            actual_row = [sheet.cell(row=row_idx, column=col_idx).value for col_idx in range(1, 8)]
             self.assertEqual(expected_row, actual_row)
 
 if __name__ == '__main__':
