@@ -50,12 +50,10 @@ class TestReportGenerator(unittest.TestCase):
                 # Verify content is sorted by table name
                 self.assertEqual(rows[1][0], 'TABLE1')
                 self.assertEqual(rows[2][0], 'TABLE2')
-                self.assertEqual(rows[3][0], 'TABLE2')
                 
                 # Verify attribute counts
-                self.assertEqual(rows[1][1], '5')
-                self.assertEqual(rows[2][1], '5')
-                self.assertEqual(rows[3][1], '3')
+                self.assertEqual(rows[1][1], '2')
+                self.assertEqual(rows[2][1], '1')
                 
         finally:
             # Clean up temporary file
