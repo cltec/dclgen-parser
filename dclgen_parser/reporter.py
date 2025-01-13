@@ -1,7 +1,7 @@
 from typing import Dict, List
 import csv
 
-from dclgen_parser.scanner import TableStats
+from dclgen_parser.parser import Table
 
 class ReportGenerator:
     """Generates CSV reports from DCLGEN scanning results"""
