@@ -1,7 +1,7 @@
 import os
 import argparse
 
-from dclgen_parser.reporter import ReportGenerator
+from dclgen_parser.excel_reporter import ExcelReporter
 
 from dclgen_parser.scanner import DCLGENScanner
 
@@ -25,11 +25,12 @@ def main():
     scanner = DCLGENScanner()
     tables_stats = scanner.scan_directory(args.directory)
     
-    # Generate report
-    report_generator = ReportGenerator()
-    report_generator.generate_report(tables_stats, args.output)
+    # Generate Excel report
+    excel_reporter = ExcelReporter()
+    excel_file_name = f"report_{datetime.now().strftime('%Y-%m-%d')}.xlsx"
+    excel_reporter.generate_excel_report(list(tables_stats.values()), excel_file_name)
     
-    print(f"CSV report generated: {args.output}")
+    print(f"Excel report generated: {excel_file_name}")
     return 0
 
 if __name__ == '__main__':
