@@ -4,19 +4,27 @@ import os
 from tempfile import NamedTemporaryFile
 
 from dclgen_parser.reporter import ReportGenerator
-from dclgen_parser.scanner import TableStats
+from dclgen_parser.parser import Table, Attribute
 
 class TestReportGenerator(unittest.TestCase):
     def setUp(self):
         self.report_generator = ReportGenerator()
         self.sample_stats = {
-            'TABLE1': [
-                TableStats(filename='file1.dclgen', attribute_count=5, schema="Schema1"),
-                TableStats(filename='file2.dclgen', attribute_count=5, schema="Schema1")
-            ],
-            'TABLE2': [
-                TableStats(filename='file3.dclgen', attribute_count=3, schema="Schema1")
-            ]
+            'TABLE1': Table(
+                table_name='TABLE1',
+                schema_name='Schema1',
+                attributes=[
+                    Attribute(name='ID', type='INTEGER', nullable=False),
+                    Attribute(name='NAME', type='VARCHAR', length=255, nullable=True)
+                ]
+            ),
+            'TABLE2': Table(
+                table_name='TABLE2',
+                schema_name='Schema1',
+                attributes=[
+                    Attribute(name='PRICE', type='DECIMAL', precision=10, scale=2, nullable=False)
+                ]
+            )
         }
 
     def test_generate_report(self):
