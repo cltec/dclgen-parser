@@ -74,7 +74,7 @@ def main():
         # Generate Excel report
         excel_reporter = ExcelReporter()
         excel_file_name = os.path.splitext(os.path.basename(file_path))[0] + ".xlsx"
-        excel_reporter.generate_excel_report(table, excel_file_name)
+        excel_reporter.generate_excel_report([table], excel_file_name)
         print(f"\nExcel report generated: {excel_file_name}")
         sys.exit(1)
     except Exception as e:

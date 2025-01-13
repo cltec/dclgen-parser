@@ -7,15 +7,23 @@ from openpyxl import load_workbook
 class TestExcelReporter(unittest.TestCase):
     def setUp(self):
         self.reporter = ExcelReporter()
-        self.test_table = Table(
-            table_name="test_table",
-            schema_name="test_schema",
-            attributes=[
-                Attribute(name="id", type="INTEGER", nullable=False),
-                Attribute(name="name", type="VARCHAR", length=255, nullable=True),
-                Attribute(name="price", type="DECIMAL", precision=10, scale=2, nullable=False)
-            ]
-        )
+        self.test_tables = [
+            Table(
+                table_name="test_table_1",
+                schema_name="test_schema_1",
+                attributes=[
+                    Attribute(name="id", type="INTEGER", nullable=False),
+                    Attribute(name="name", type="VARCHAR", length=255, nullable=True)
+                ]
+            ),
+            Table(
+                table_name="test_table_2",
+                schema_name="test_schema_2",
+                attributes=[
+                    Attribute(name="price", type="DECIMAL", precision=10, scale=2, nullable=False)
+                ]
+            )
+        ]
         self.output_file = "test_report.xlsx"
 
     def tearDown(self):
@@ -23,7 +31,7 @@ class TestExcelReporter(unittest.TestCase):
             os.remove(self.output_file)
 
     def test_generate_excel_report(self):
-        self.reporter.generate_excel_report(self.test_table, self.output_file)
+        self.reporter.generate_excel_report(self.test_tables, self.output_file)
         self.assertTrue(os.path.exists(self.output_file))
 
         # Load the workbook and verify its contents
@@ -37,9 +45,9 @@ class TestExcelReporter(unittest.TestCase):
 
         # Check attribute data
         expected_data = [
-            ["test_table", "id", "INTEGER", "N/A", "N/A", "N/A", "No"],
-            ["test_table", "name", "VARCHAR", 255, "N/A", "N/A", "Yes"],
-            ["test_table", "price", "DECIMAL", "N/A", 10, 2, "No"]
+            ["test_table_1", "id", "INTEGER", "N/A", "N/A", "N/A", "No"],
+            ["test_table_1", "name", "VARCHAR", 255, "N/A", "N/A", "Yes"],
+            ["test_table_2", "price", "DECIMAL", "N/A", 10, 2, "No"]
         ]
 
         for row_idx, expected_row in enumerate(expected_data, start=2):
