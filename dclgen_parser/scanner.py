@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, NamedTuple
+from typing import Dict
 from dclgen_parser.parser import DCLGENParser  # Import the parser we created earlier
 
 
@@ -20,12 +20,12 @@ class DCLGENScanner:
         except (UnicodeDecodeError, IOError):
             return False
             
-    def scan_directory(self, directory_path: str) -> Dict[str, List[TableStats]]:
+    def scan_directory(self, directory_path: str) -> Dict[str, Table]:
         """
         Scan a directory for DCLGEN files and process them
         Returns a dictionary mapping table names to their statistics
         """
-        tables_stats: Dict[str, List[TableStats]] = {}
+        tables_stats: Dict[str, Table] = {}
         
         # Convert to Path object for easier manipulation
         base_path = Path(directory_path)
