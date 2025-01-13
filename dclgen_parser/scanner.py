@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Dict
-from dclgen_parser.parser import DCLGENParser  # Import the parser we created earlier
+from dclgen_parser.parser import DCLGENParser, Table  # Import the parser we created earlier
 
 
 class DCLGENScanner:
