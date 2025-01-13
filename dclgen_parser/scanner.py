@@ -13,8 +13,7 @@ class TableParser:
     """Parses DCLGEN content and returns Table objects"""
 
     def __init__(self):
-        self.table_parser = TableParser()
-        self.stats_generator = TableStatsGenerator()
+        self.parser = DCLGENParser()
 
     def parse_table(self, content: str) -> Table:
         return self.parser.parse(content)
