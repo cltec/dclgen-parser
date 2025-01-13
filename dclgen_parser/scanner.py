@@ -35,7 +35,8 @@ class DCLGENScanner:
     """Scans directories for DCLGEN files and processes them"""
     
     def __init__(self):
-        self.parser = DCLGENParser()
+        self.table_parser = TableParser()
+        self.stats_generator = TableStatsGenerator()
         
     def is_dclgen_file(self, file_path: Path) -> bool:
         """
