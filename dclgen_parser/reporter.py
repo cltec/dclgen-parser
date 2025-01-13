@@ -6,7 +6,7 @@ from dclgen_parser.parser import Table
 class ReportGenerator:
     """Generates CSV reports from DCLGEN scanning results"""
     
-    def generate_report(self, tables_stats: Dict[str, List[TableStats]], output_file: str):
+    def generate_report(self, tables_stats: Dict[str, List[Table]], output_file: str):
         """Generate a CSV report of the DCLGEN scanning results"""
         # Ensure output file has .csv extension
         if not output_file.lower().endswith('.csv'):
