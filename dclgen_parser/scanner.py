@@ -63,8 +63,7 @@ class DCLGENScanner:
                     tables_stats[table.table_name] = [stats]
                     
             except Exception as e:
-                print(f"Error processing file {file_path}: {str(e)}")
-                continue
+                raise e
                     
         return tables_stats
     
