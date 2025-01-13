@@ -1,6 +1,6 @@
 import unittest
 from pathlib import Path
-from dclgen_parser.scanner import DCLGENScanner, TableStats
+from dclgen_parser.scanner import DCLGENScanner, TableStats, TableParser, TableStatsGenerator
 
 class TestDCLGENScanner(unittest.TestCase):
     def setUp(self):
