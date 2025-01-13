@@ -1,4 +1,5 @@
 from openpyxl import Workbook
+from typing import List
 from dclgen_parser.parser import Table
 
 class ExcelReporter:
