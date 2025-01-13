@@ -29,10 +29,3 @@ class ReportGenerator:
                     table.schema_name or "N/A",
                     normalized_filename
                 ])
-                    writer.writerow([
-                        table_name,
-                        stats.attribute_count,
-                        stats.filename,
-                        stats.schema,
-                        normalized_filename
-                    ])
