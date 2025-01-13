@@ -3,6 +3,7 @@ import argparse
 import os
 from prettytable import PrettyTable
 from dclgen_parser.parser import DCLGENParser
+from dclgen_parser.excel_reporter import ExcelReporter
 
 def print_table_info(table):
     """Print general table information"""
@@ -69,8 +70,12 @@ def main():
         
         # Print attribute details
         print_attributes(table.attributes)
-        
-    except FileNotFoundError:
+    
+        # Generate Excel report
+        excel_reporter = ExcelReporter()
+        excel_file_name = os.path.splitext(os.path.basename(file_path))[0] + ".xlsx"
+        excel_reporter.generate_excel_report(table, excel_file_name)
+        print(f"\nExcel report generated: {excel_file_name}")
         print(f"Error: File '{args.file}' not found")
         sys.exit(1)
     except Exception as e:
