@@ -4,7 +4,7 @@ from datetime import datetime
 
 from dclgen_parser.excel_reporter import ExcelReporter
 
-from dclgen_parser.scanner import DCLGENScanner, TableStatsGenerator
+from dclgen_parser.scanner import DCLGENScanner
 from dclgen_parser.parser import Table
 
 def main():
@@ -28,11 +28,7 @@ def main():
     tables = scanner.scan_directory(args.directory)
     
     # Generate table stats
-    stats_generator = TableStatsGenerator()
-    tables_stats = []
-    for table_name, table in tables.items():
-        stats = stats_generator.generate_stats(table, table_name)
-        tables_stats.append(stats)
+    tables_stats = list(tables.values())
     
     # Generate Excel report
     excel_reporter = ExcelReporter()
