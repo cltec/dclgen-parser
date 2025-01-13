@@ -4,7 +4,8 @@ from datetime import datetime
 
 from dclgen_parser.excel_reporter import ExcelReporter
 
-from dclgen_parser.scanner import DCLGENScanner
+from dclgen_parser.scanner import DCLGENScanner, TableStatsGenerator
+from dclgen_parser.parser import Table
 
 def main():
     # Set up command line argument parsing
@@ -24,12 +25,19 @@ def main():
         
     # Create scanner and process files
     scanner = DCLGENScanner()
-    tables_stats = scanner.scan_directory(args.directory)
+    tables = scanner.scan_directory(args.directory)
+    
+    # Generate table stats
+    stats_generator = TableStatsGenerator()
+    tables_stats = []
+    for table_name, table in tables.items():
+        stats = stats_generator.generate_stats(table, table_name)
+        tables_stats.append(stats)
     
     # Generate Excel report
     excel_reporter = ExcelReporter()
     excel_file_name = f"report_{datetime.now().strftime('%Y-%m-%d')}.xlsx"
-    excel_reporter.generate_excel_report(list(tables_stats.values()), excel_file_name)
+    excel_reporter.generate_excel_report(tables_stats, excel_file_name)
     
     print(f"Excel report generated: {excel_file_name}")
     return 0

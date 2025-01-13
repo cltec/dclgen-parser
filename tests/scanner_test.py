@@ -60,10 +60,8 @@ class TestDCLGENScanner(unittest.TestCase):
                     
                     # Verify results
                     self.assertIn('EIP_ADT_TRAIL', result)
-                    stats_list = result['EIP_ADT_TRAIL']
-                    self.assertEqual(len(stats_list), 1)
-                    self.assertEqual(stats_list[0].attribute_count, 4)
-                    self.assertEqual(stats_list[0].filename, 'test.dclgen')
+                    table = result['EIP_ADT_TRAIL']
+                    self.assertEqual(len(table.attributes), 4)
 
     def test_scan_directory_multiple_files(self):
         """Test scanning a directory with multiple DCLGEN files raises an error"""

@@ -1,41 +1,13 @@
 from pathlib import Path
 from typing import Dict, List, NamedTuple
-from dclgen_parser.parser import DCLGENParser, Table  # Import the parser we created earlier
-
-class TableStats(NamedTuple):
-    """Statistics for a single table"""
-    filename: str
-    attribute_count: int
-    schema:str
-
-
-class TableParser:
-    """Parses DCLGEN content and returns Table objects"""
-
-    def __init__(self):
-        self.parser = DCLGENParser()
-
-    def parse_table(self, content: str) -> Table:
-        return self.parser.parse(content)
-
-
-class TableStatsGenerator:
-    """Generates TableStats from Table objects"""
-
-    def generate_stats(self, table: Table, filename: str) -> TableStats:
-        return TableStats(
-            filename=filename,
-            attribute_count=len(table.attributes),
-            schema=table.schema_name if table.schema_name else ""
-        )
+from dclgen_parser.parser import DCLGENParser  # Import the parser we created earlier
 
 
 class DCLGENScanner:
     """Scans directories for DCLGEN files and processes them"""
     
     def __init__(self):
-        self.table_parser = TableParser()
-        self.stats_generator = TableStatsGenerator()
+        self.parser = DCLGENParser()
         
     def is_dclgen_file(self, file_path: Path) -> bool:
         """
@@ -69,17 +41,10 @@ class DCLGENScanner:
             try:
                 with open(file_path, 'r') as f:
                     content = f.read()
-                    table = self.table_parser.parse_table(content)
-                    stats = self.stats_generator.generate_stats(
-                        table, str(file_path.relative_to(base_path))
-                    )
-                    
-                    # Ensure each table is only defined once
+                    table = self.parser.parse(content)
                     if table.table_name in tables_stats:
                         raise ValueError(f"Table '{table.table_name}' is defined more than once")
-                    
-                    tables_stats[table.table_name] = [stats]
-                    
+                    tables_stats[table.table_name] = table
             except Exception as e:
                 raise e
                     
