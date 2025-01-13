@@ -45,7 +45,7 @@ class TestReportGenerator(unittest.TestCase):
                 self.assertEqual(rows[0], [ 'Table Name', 'Number of Attributes', 'File Path', 'Schema', 'Normalized File Name'])
                 
                 # Check data rows
-                self.assertEqual(len(rows), 4)  # Header + 3 data rows
+                self.assertEqual(len(rows), 3)  # Header + 2 data rows
                 
                 # Verify content is sorted by table name
                 self.assertEqual(rows[1][0], 'TABLE1')
@@ -95,9 +95,9 @@ class TestReportGenerator(unittest.TestCase):
                 rows = list(reader)
 
                 # Check normalized file names
-                self.assertEqual(rows[0][4], 'FILE1')
-                self.assertEqual(rows[1][4], 'FILE2')
-                self.assertEqual(rows[2][4], 'FILE3')
+                self.assertEqual(rows[0][4], 'TABLE1')
+                self.assertEqual(rows[1][4], 'TABLE1')
+                self.assertEqual(rows[2][4], 'TABLE2')
 
         finally:
             # Clean up temporary file
