@@ -56,10 +56,11 @@ class DCLGENScanner:
                         schema=table.schema_name if table.schema_name else ""
                     )
                     
-                    # Add to our collection
-                    if table.table_name not in tables_stats:
-                        tables_stats[table.table_name] = []
-                    tables_stats[table.table_name].append(stats)
+                    # Ensure each table is only defined once
+                    if table.table_name in tables_stats:
+                        raise ValueError(f"Table '{table.table_name}' is defined more than once")
+                    
+                    tables_stats[table.table_name] = [stats]
                     
             except Exception as e:
                 print(f"Error processing file {file_path}: {str(e)}")
