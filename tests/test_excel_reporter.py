@@ -31,15 +31,15 @@ class TestExcelReporter(unittest.TestCase):
         sheet = workbook.active
 
         # Check headers
-        expected_headers = ["Name", "Type", "Length", "Precision", "Scale", "Nullable"]
+        expected_headers = ["Table", "Name", "Type", "Length", "Precision", "Scale", "Nullable"]
         actual_headers = [cell.value for cell in sheet[1]]
         self.assertEqual(expected_headers, actual_headers)
 
         # Check attribute data
         expected_data = [
-            ["id", "INTEGER", "N/A", "N/A", "N/A", "No"],
-            ["name", "VARCHAR", 255, "N/A", "N/A", "Yes"],
-            ["price", "DECIMAL", "N/A", 10, 2, "No"]
+            ["test_table", "id", "INTEGER", "N/A", "N/A", "N/A", "No"],
+            ["test_table", "name", "VARCHAR", 255, "N/A", "N/A", "Yes"],
+            ["test_table", "price", "DECIMAL", "N/A", 10, 2, "No"]
         ]
 
         for row_idx, expected_row in enumerate(expected_data, start=2):

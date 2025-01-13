@@ -10,12 +10,13 @@ class ExcelReporter:
         sheet.title = "Table Information"
 
         # Add headers
-        headers = ["Name", "Type", "Length", "Precision", "Scale", "Nullable"]
+        headers = ["Table", "Name", "Type", "Length", "Precision", "Scale", "Nullable"]
         sheet.append(headers)
 
         # Add attribute data
         for attr in table.attributes:
             sheet.append([
+                table.table_name,
                 attr.name,
                 attr.type,
                 attr.length or "N/A",
