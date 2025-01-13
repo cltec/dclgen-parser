@@ -66,7 +66,7 @@ class TestDCLGENScanner(unittest.TestCase):
                     self.assertEqual(stats_list[0].filename, 'test.dclgen')
 
     def test_scan_directory_multiple_files(self):
-        """Test scanning a directory with multiple DCLGEN files"""
+        """Test scanning a directory with multiple DCLGEN files raises an error"""
         mock_path1 = MagicMock(spec=Path)
         mock_path1.is_file.return_value = True
         mock_path1.relative_to.return_value = Path('test1.dclgen')
@@ -80,13 +80,10 @@ class TestDCLGENScanner(unittest.TestCase):
             
             with patch.object(self.scanner, 'is_dclgen_file', return_value=True):
                 with patch('builtins.open', mock_open(read_data=self.sample_dclgen)):
-                    result = self.scanner.scan_directory('/dummy/path')
+                    with self.assertRaises(ValueError) as context:
+                        self.scanner.scan_directory('/dummy/path')
                     
-                    self.assertIn('EIP_ADT_TRAIL', result)
-                    stats_list = result['EIP_ADT_TRAIL']
-                    self.assertEqual(len(stats_list), 2)
-                    self.assertEqual(stats_list[0].attribute_count, 4)
-                    self.assertEqual(stats_list[1].attribute_count, 4)
+                    self.assertIn("Table 'EIP_ADT_TRAIL' is defined more than once", str(context.exception))
 
     def test_scan_directory_with_errors(self):
         """Test scanning a directory with a file that raises an error"""
@@ -100,8 +97,10 @@ class TestDCLGENScanner(unittest.TestCase):
             
             with patch.object(self.scanner, 'is_dclgen_file', return_value=True):
                 with patch('builtins.open', side_effect=Exception('Test error')):
-                    result = self.scanner.scan_directory('/dummy/path')
-                    self.assertEqual(len(result), 0)
+                    with self.assertRaises(Exception) as context:
+                        self.scanner.scan_directory('/dummy/path')
+                    
+                    self.assertIn("Test error", str(context.exception))
 
     def test_scan_directory_empty(self):
         """Test scanning an empty directory"""
