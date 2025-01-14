@@ -8,6 +8,7 @@ class ExcelReporter:
     def generate_excel_report(self, tables: List[Table], output_file: str):
         workbook = Workbook()
         sheet = workbook.active
+        assert sheet is not None, "Failed to create Excel sheet"
         sheet.title = "Table Information"
 
         # Add headers
